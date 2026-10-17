@@ -52,11 +52,17 @@ public sealed class OfferExtractionEvals(ITestOutputHelper output, EvalReportFix
     }
 }
 
+/// <summary>The development set report: evals-report.md and evals-raw/.</summary>
+public sealed class EvalReportFixture : EvalReportFixtureBase
+{
+    public EvalReportFixture() : base("evals-report.md", "evals-raw") { }
+}
+
 /// <summary>
-/// Collects one row per case and writes evals-report.md (plus the raw model answers under evals-raw/)
-/// when every case has run. A fixture, so no static state survives between runs.
+/// Collects one row per case and writes the report (plus the raw model answers) when every case
+/// has run. A fixture, so no static state survives between runs.
 /// </summary>
-public sealed class EvalReportFixture : IDisposable
+public abstract class EvalReportFixtureBase(string reportFile, string rawFolder) : IDisposable
 {
     private readonly List<(EvalScore Score, string Model, long Tokens, TimeSpan Duration)> _rows = [];
     private readonly string _folder = AppContext.BaseDirectory;
@@ -66,7 +72,7 @@ public sealed class EvalReportFixture : IDisposable
         lock (_rows)
             _rows.Add((score, model, tokens, duration));
 
-        var raw = Path.Combine(_folder, "evals-raw");
+        var raw = Path.Combine(_folder, rawFolder);
         Directory.CreateDirectory(raw);
         File.WriteAllText(Path.Combine(raw, score.Case + ".json"), rawOutput, Encoding.UTF8);
     }
@@ -93,6 +99,6 @@ public sealed class EvalReportFixture : IDisposable
             sb.AppendLine($"| {r.Score.Case} | {r.Score.Passed}/{r.Score.Total} | {r.Tokens} | {r.Duration.TotalSeconds.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} | {failures} |");
         }
 
-        File.WriteAllText(Path.Combine(_folder, "evals-report.md"), sb.ToString(), Encoding.UTF8);
+        File.WriteAllText(Path.Combine(_folder, reportFile), sb.ToString(), Encoding.UTF8);
     }
 }

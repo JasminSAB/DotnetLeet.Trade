@@ -1,0 +1,40 @@
+{
+  "name": "h1-northgate-decimal-comma",
+  "senderAddress": "vertrieb@northgate-dist.example",
+  "email": "Subject: Angebot AN-26-7710\n\nHallo Anna,\n\nvielen Dank fuer Ihre Anfrage. Unser Angebot, alle Preise netto pro Stueck:\n\nNG-190587   Logitech MX Keys S Tastatur    25 Stk   82,40 EUR\nNG-118802   WD Blue SN580 2TB NVMe            40 Stk   97,50 EUR\nNG-180108   TP-Link TL-SG108 Switch           30 Stk   14,95 EUR\n\nAngebotsnummer AN-26-7710, gueltig bis 15.11.2026.\nZahlungsziel 30 Tage netto. Lieferzeit 5 Tage ab Auftragseingang.\n\nMit freundlichen Gruessen\nKatrin Vogel\nVertrieb\nNorthgate Distribution GmbH",
+  "expected": {
+    "supplierCode": "NORTHGATE",
+    "supplierReference": "AN-26-7710",
+    "currency": "EUR",
+    "validUntil": "2026-11-15",
+    "paymentTermsDays": 30,
+    "deliveryDays": 5,
+    "lines": [
+      {
+        "sku": "PER-LOG-MXKEYS",
+        "quantity": 25,
+        "unitPrice": 82.40,
+        "unit": "Stk"
+      },
+      {
+        "sku": "SSD-WD-SN580-2T",
+        "quantity": 40,
+        "unitPrice": 97.50,
+        "unit": "Stk"
+      },
+      {
+        "sku": "NET-TPL-SG108",
+        "quantity": 30,
+        "unitPrice": 14.95,
+        "unit": "Stk"
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "2060",
+      "3900",
+      "448.5"
+    ]
+  },
+  "notes": "German quote with decimal commas and a dd.MM.yyyy validity date, three Northgate article codes."
+}

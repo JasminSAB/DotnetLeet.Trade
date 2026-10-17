@@ -11,9 +11,10 @@ public static class OfferExtractionInstructions
 {
     /// <summary>
     /// v1: the first draft. v2: dates always as yyyy-MM-dd, currency from symbols and per-line codes,
-    /// "ships within 24 hours" is 0 days, numbers copied digit for digit. Each change came from a failed eval.
+    /// numbers copied digit for digit, tier lines repeat the product. v3: availability ("in stock",
+    /// "ships within 24 hours") is not a delivery time and leaves the field empty. Each change came from a failed eval.
     /// </summary>
-    public const string Version = "offer-extraction-v2";
+    public const string Version = "offer-extraction-v3";
 
     private static readonly Lazy<string> Loaded = new(Load);
 

@@ -1,31 +1,37 @@
 # A Supplier Email Becomes a Draft Offer
 
-*LLM Inside the Monolith, Level 1. Draft for review, 2026-10-17. Every number below comes from `docs/evals/` and from the run recorded in `docs/level-1/report.md`.*
+*LLM Inside the Monolith, Level 1. Draft 4 for final review, 2026-10-18. Every number comes from `docs/evals/` in the repo.*
 
-A supplier sends a quote by email. Somebody in purchasing retypes it into the ERP, works out which catalog item each line is, checks the price against the last one, and only then can compare it with the next quote. Hours per day, and the expensive mistakes live exactly there: the wrong item, a mistyped price, a validity date nobody noticed.
+DotnetLeet.Trade is the back office of a computer hardware reseller, a company that buys from distributors and sells to businesses. I am building it in public, one working slice at a time, and the first slice is purchasing. A supplier sends a quote by email. Someone retypes it into the system, works out which catalog item each line is, checks the price against what we paid last time, and only then can compare it with the next quote. The expensive mistakes live exactly there: the wrong item, a mistyped price, a validity date nobody noticed.
 
-This is the first level of a system I am building in public: the back office of a computer hardware reseller, one .NET modular monolith, PostgreSQL, a local model. The rule that holds on every level is set here: the model reads and proposes, the code checks, computes and decides, a person confirms. The model is allowed to be wrong. The system is not allowed to let the error through.
+The emails have no format. One supplier writes a plain list with its own article codes, another quotes by manufacturer part numbers, a third sends a table made of pipes, a fourth gives quantity tiers, and prices arrive in EUR, GBP and USD in three number formats. Hand-written parsers for that exist, and each new format means more parser to maintain. A language model reads all of it, and it makes mistakes of its own. That is what this slice is about: how an unreliable output fits into an application that has business rules, validation and a person at the end. The model reads and proposes. Code matches, computes and checks what it can check. A person reviews and confirms.
 
-## What you can run
+By the end you can run the system on your machine, paste a supplier email, see the draft with its problems listed, correct one and confirm it. You will see where each piece of the model lives in a clean architecture solution, why a valid JSON answer is not the same as correct data, and measured results with their limits. Two emails run through the post: a plain quote from a German distributor, Northgate, and one from a Bosnian supplier, Adria Komponente, which goes wrong in an instructive way. The suppliers, the emails, the catalog and the purchase history are synthetic demo data written for this series. No real company or transaction appears in it.
+
+## Run it
+
+You need Docker Desktop and the .NET 10 SDK. Everything else comes from the Aspire AppHost.
 
 ```
-git clone <repo>
+git clone https://github.com/JasminSAB/DotnetLeet.Trade.git
+cd DotnetLeet.Trade
+git checkout level-1
 dotnet run --project DotnetLeet.Trade.AppHost
 ```
 
-Aspire starts PostgreSQL, Ollama with `llama3.2`, the API and a Blazor review page. Paste a supplier email, and 30 to 40 seconds later (CPU, no GPU) you have a typed draft: supplier, currency, validity, terms, and one line per product with the catalog match, our line total and a list of what is wrong, in red when it blocks the review.
+Aspire starts PostgreSQL, Ollama with `llama3.2`, the API and a Blazor review page, and seeds a catalog of 42 products, 5 suppliers and their last purchase prices. The first start downloads the model, about 2 GB, into a Docker volume. The two emails from this post are in the repo as eval cases, the `email` field of `DotnetLeet.Trade.Evals/Evals/cases/01-northgate-plain-list.json` and `05-adria-packs-line-total.json`. Paste the Northgate one on the "New offer" page. On a CPU the model needs 30 to 40 seconds. Then you get this:
 
-[Screenshot: 03-offer-review-good. A Northgate quote with four lines, all matched by supplier code, 8,387.00 EUR, no issues.]
+[Screenshot 03: Northgate, four lines, every one matched by supplier code, line totals and the subtotal of 8,387.00 EUR, no issues, confirmed.]
 
-## Where the LLM lives
+## Where the model lives
 
-An LLM in a solution is not one thing. It is four, and each has a different owner.
+A language model in a solution is not one thing. It is four, and each has a different owner.
 
 | Piece | What it is | Where it lives |
 |---|---|---|
-| The instructions | The rules for reading an email, in prose, versioned | Application, an embedded resource `offer-extraction-v2.md` |
+| The instructions | How to read a supplier email, in prose, versioned | Application, an embedded resource `offer-extraction-v3.md` |
 | The email | Input data | Crosses the boundary like any other command |
-| The draft | Nullable fields, strings as the supplier wrote them | `OfferExtraction`, owned by Application |
+| The draft | Nullable fields, strings as the supplier wrote them | `OfferExtraction`, a record owned by Application |
 | The model | Provider, endpoint, temperature, JSON schema | Infrastructure, behind one port |
 
 The port does not say "AI". A person with a form could implement it.
@@ -46,13 +52,17 @@ public sealed record ExtractedLine(
     string? Unit);
 ```
 
-The nullable numbers are the design. What the model could not read stays null, and null becomes an issue a person sees. Nothing in the pipeline fills a gap with a guess.
+The nullable numbers are the design. What the model could not read stays null, and null becomes an issue a person sees. That gives the draft a way to say "unknown". It does not stop the model from writing a value that is not in the email, and the last section shows that happening.
 
-The domain never hears about the model. It gets a `SupplierOffer` with lines, matches every line to the catalog by code (our SKU, the supplier's article code, the manufacturer part number, EAN, and as a last resort a known code found inside the raw line text), computes line totals and the subtotal, and runs the rules. A test fails the build if the Domain or Application project ever references an AI or database package.
+The domain never hears about the model. It receives a `SupplierOffer` with lines, matches each line to the catalog by code (our SKU, the supplier's article code, the manufacturer part number, EAN, or a known code found inside the raw line text), computes line totals and the subtotal, and runs the rules: unknown supplier, missing currency, expired validity, unmatched product, missing quantity or price, price far from the last purchase. A test fails the build if Domain or Application references an AI or database package.
 
-## The bug that produced an empty answer
+Two more guarantees sit in the use case. The same email twice is the same offer: the text is hashed, and a second submission returns the existing draft without a second model call. And every model call is a row in `ai.calls`: input, raw answer, instructions version, tokens, duration. The input to the model is the specification of the feature. Keep it.
 
-The first eval run scored 66%, and the reason was not the model. Some emails came back as `{}`. `Microsoft.Extensions.AI` builds the JSON schema from the DTO, and that schema had no `required` list. With the schema as a grammar, an empty object is valid, so a 3B model sometimes took the shortest valid path.
+[Screenshot 05: the AI calls page.]
+
+## Schema valid is not correct
+
+In the first eval run the biggest loss was not the model's reading. Some emails came back as `{}`. `Microsoft.Extensions.AI` builds the JSON schema from the DTO, and that schema had no `required` list. With the schema used as a grammar, an empty object is a valid answer.
 
 ```csharp
 private static readonly ChatResponseFormat ResponseFormat = ChatResponseFormat.ForJsonSchema(
@@ -69,15 +79,13 @@ private static readonly ChatResponseFormat ResponseFormat = ChatResponseFormat.F
     schemaName: "SupplierOffer");
 ```
 
-Every property required, nullable ones included. The empty answers stopped. 66% became 85%.
+Every property required, nullable ones included. In the next run no email came back empty, and the score moved from run 1 to run 2 in the table below. I did not look into why the model produced empty objects, only that they stopped after the schema change in the run I measured.
 
-## Schema valid is not correct
+Now the Adria email. Cables per pack, and one line states only a total: 25 packs, 612.50 in total. The model wrote 612.50 as the unit price. Valid JSON, every field present, and a line worth 15,312.50 instead of 612.50.
 
-The second example is an email from a Bosnian supplier, cables sold per pack, and one line that only states a total: 25 packs, 612.50 in total. The model wrote 612.50 as the unit price. Valid JSON, valid schema, and a line worth 15,312.50 instead of 612.50.
+[Screenshot 04: the HDMI line with the blocking message, 25 times the last purchase price of 24.50 EUR.]
 
-[Screenshot: 04-offer-review-problems. The HDMI line with the blocking message: 25 times the last purchase price of 24.50 EUR.]
-
-The domain caught it, not the model and not the prompt. We bought those packs six weeks ago at 24.50, and a unit price three times the last purchase price blocks the review:
+The domain caught it. The seeded purchase history has those packs bought six weeks earlier at 24.50, and a unit price three times the last purchase price blocks the review:
 
 ```csharp
 if (price >= last.UnitPrice * GrossDeviationFactor)
@@ -89,34 +97,48 @@ else if (price > last.UnitPrice * (1 + PriceDeviationThreshold))
 
 The reviewer reads the email, types 24.50, the rules run again, the line total becomes 612.50, and confirm passes. Before the correction, confirm returns 409 with the domain's sentence: an offer with blocking issues cannot be marked as reviewed.
 
-[Screenshot: 06-offer-review-confirmed.]
+[Screenshot 06: Adria corrected and confirmed.]
 
-Two more things the use case guarantees. The same email twice is the same offer: the text is hashed, and a second submission returns the existing draft without a second model call. And every model call is a row in `ai.calls`: the input, the raw answer, the instructions version, tokens, duration. The input to the model is the specification of the feature. Keep it.
+What the rule did and did not do: it caught a number 25 times the last price because a last price existed. For a product never bought before, the same mistake would have produced a unit warning and nothing else. A wrong value that looks plausible, 26.50 instead of 24.50, passes every rule in this system. The rules catch the classes of error they were written for. The person reviewing the draft is the last check, not a formality.
 
-[Screenshot: 05-ai-calls.]
+## Measuring on twelve emails, then on five more
 
-## Evidence, not a feeling
+Twelve supplier emails cover what quotes do: supplier codes, part numbers only, GBP and USD, thousands separators, packs, quantity tiers, no currency, an expired offer, a prompt injection, an unknown sender, a forwarded thread. For each, I wrote the expected values before the model saw the email. Every field is one check, every email is one xUnit test.
 
-Twelve supplier emails, written to cover what real quotes do: supplier codes, part numbers only, GBP and USD, thousands separators, packs, quantity tiers, no currency, an expired offer, a prompt injection, an unknown sender, a forwarded thread full of noise. For each, the expected values were written by a person before the model saw the email. Every field is one check, and the test runner is the report.
+Most checks are fields the model fills in. 41 are catalog matches, which deterministic code does from the model's output. They are kept apart because a better matcher is not a better model. The table scores all five runs with the same checker over the same 231 checks. How that comparison was put together from the saved reports is in `docs/evals/README.md`.
 
-| Run | Change | Fields correct | Emails fully correct |
-|---|---|---|---|
-| 1 | instructions v1, schema as generated | 161/243 (66%) | 2/12 |
-| 2 | every property required | 206/243 (85%) | 2/12 |
-| 3 | matcher finds a known code in the line text | 219/243 (90%) | 4/12 |
-| 4 | instructions v2: dates as yyyy-MM-dd, currency symbols, "ships in 24 hours" is 0 days | 224/243 (92%) | 5/12 |
+| Run | Change | All fields | Model fields | Matching | Emails fully correct |
+|---|---|---|---|---|---|
+| 1 | instructions v1, schema as generated | 155/231 | 132/190 | 23/41 | 1/12 |
+| 2 | every property required | 200/231 | 169/190 | 31/41 | 2/12 |
+| 3 | matcher finds a known code in the line text | 208/231 | 169/190 | 39/41 | 4/12 |
+| 4 | instructions v2: dates as yyyy-MM-dd, currency symbols, numbers digit for digit | 212/231 | 172/190 | 40/41 | 4/12 |
+| 5 | instructions v3: availability is not a delivery time | 215/231 | 175/190 | 40/41 | 5/12 |
 
-What still fails with llama3.2: a currency stated once in a sentence is missed in half the emails, "EUR 168.40" loses its decimal point, a date written in words is sometimes left empty, and the division above. None of it reaches the business. A missing currency and an unmatched line are blocking issues. The reviewer sees red and cannot confirm.
+Run 3 touched nothing the model sees, and its model column is identical to run 2. The whole gain is matching. Run 5 corrects a mistake of mine: v2 told the model that "in stock" and "ships within 24 hours" mean a delivery time of 0 days. Availability, dispatch and delivery are three different things, so v3 leaves the delivery field empty for them, and the expected value was corrected too.
 
-[Screenshot: 09-aspire-trace-detail. One extraction as an Aspire trace: 36.9 s end to end, 36 s of it in the chat span to Ollama, six PostgreSQL calls under 40 ms each.]
+This is a development set. Every change was made after reading these twelve emails and measured on the same twelve. So I froze the instructions, the rules and the checker, wrote five new emails in styles the system had not seen (decimal commas and a German validity date, a quote written as a sentence, part numbers with one line total, an unknown sender quoting our own SKUs, a forwarded thread), and ran them once.
+
+| Set | All fields | Model fields | Matching | Emails fully correct |
+|---|---|---|---|---|
+| Held-out, 5 emails, one run | 78/89 | 66/76 | 12/13 | 0/5 |
+
+The failures repeat the development set, plus two new ones. The currency in a sentence is missed in three of five. "Ships within 24 hours" still became 24 delivery days despite v3. In three emails the model filled in a validity date that is not in the email, and in one a payment term of 0 days. Those are invented values, exactly what the instructions forbid, and on the review page they look like any other value. The rules have nothing to compare them against, so they pass. Only a reviewer who reads the email next to the draft would notice. Five emails are a small check, not a proof of reliability, and now that I have read their results they are part of the development set.
+
+[Screenshot 09: one extraction as an Aspire trace, 36.9 s end to end, 36 s in the chat span to Ollama, six PostgreSQL calls under 40 ms each.]
 
 ## Limitations
 
-- A 3B model on a CPU: 20 to 40 seconds per email. A cloud model would be faster and more accurate, and Level 6 measures exactly that on the same twelve emails.
-- The deviation rules need purchase history. A product we never bought has no yardstick.
-- Matching is codes only. A line with a description and no code stays unmatched, by design.
+- A 3B model on a CPU: 30 to 40 seconds per email on my machine. I have not measured another model or a GPU, so I make no claim about either.
+- Twelve development emails and five held-out ones. Small numbers, one model, one run each.
+- The model invents values sometimes (a date, a payment term) and the rules cannot see that. The reviewer can, if they look.
+- The deviation rules need purchase history. A product never bought before has no yardstick.
+- Matching is codes only, and a known code shorter than six characters is not searched for inside the line text.
 - No PDF attachments, no reply to the supplier, no purchase order. An offer never changes stock and never orders anything.
+- The review page is an internal tool, not a product UI.
 
-## The rule
+## What this level showed
 
-**The model may be wrong. The system may not let the error through.** Level 1 is where that split is built: instructions in Application, the schema next to the adapter, rules and arithmetic in the domain, a person at the end. Everything that comes later, memory, documents, tools, an agent, sits on top of this and never replaces it.
+A supplier email can become a typed draft, be checked by rules the domain owns, be corrected by a person and be saved, with every model call recorded and the same email never extracted twice. That flow works and you can run it. What it has not shown is that the result can be trusted without the person. This model and this configuration get most fields right and still invent a date or copy a line total into a unit price, and the rules only catch the part of that they were written for. I have not measured how much time the flow saves against retyping, and nothing here supports letting it run on its own.
+
+**The model drafts. The rules catch what they were written to catch. A person decides.** Level 1 is where that contract is built: instructions in Application, the schema next to the adapter, matching and arithmetic in the domain, a reviewer at the end. Anything added later has to keep it.

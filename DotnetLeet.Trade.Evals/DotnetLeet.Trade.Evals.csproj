@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <Content Include="Evals\cases\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Evals\holdout\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

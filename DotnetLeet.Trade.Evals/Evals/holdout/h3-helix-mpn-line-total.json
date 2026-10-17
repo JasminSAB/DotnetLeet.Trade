@@ -1,0 +1,47 @@
+{
+  "name": "h3-helix-mpn-line-total",
+  "senderAddress": "sales@helixitsupply.example",
+  "email": "Subject: Your RFQ, our ref HIX-QT-88412\n\nDear Anna,\n\nPlease find our pricing below (GBP, ex VAT). We have used the manufacturer part numbers from your request.\n\n5 x 9G0Z4ET         HP EliteBook 840 G11        1,265.00 each\n10 x BX8071514700K  Intel Core i7-14700K Box    341.50 each\n6 x U2723QE         Dell UltraSharp U2723QE     £2,790.00 total\n8 x WD60EFPX        WD Red Plus 6TB NAS HDD     149.00 each\n\nThis quote is valid for 10 working days.\nPayment 30 days from invoice date.\n\nKind regards,\nOliver Hughes\nHelix IT Supply Ltd",
+  "expected": {
+    "supplierCode": "HELIX",
+    "supplierReference": "HIX-QT-88412",
+    "currency": "GBP",
+    "validUntil": null,
+    "paymentTermsDays": 30,
+    "deliveryDays": null,
+    "lines": [
+      {
+        "sku": "NB-HP-EB-840-G11",
+        "quantity": 5,
+        "unitPrice": 1265.00,
+        "unit": null
+      },
+      {
+        "sku": "CPU-INT-I7-14700K",
+        "quantity": 10,
+        "unitPrice": 341.50,
+        "unit": null
+      },
+      {
+        "sku": "MON-DELL-U2723QE",
+        "quantity": 6,
+        "unitPrice": null,
+        "unit": null
+      },
+      {
+        "sku": "HDD-WD-RED-6T",
+        "quantity": 8,
+        "unitPrice": 149.00,
+        "unit": null
+      }
+    ],
+    "unpricedLines": 1,
+    "mustNotAppear": [
+      "465",
+      "6325",
+      "3415",
+      "1192"
+    ]
+  },
+  "notes": "Four lines by manufacturer part number, one with only a line total (unitPrice null), validity in working days with no date."
+}

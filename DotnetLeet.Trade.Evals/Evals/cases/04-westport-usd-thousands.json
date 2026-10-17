@@ -8,30 +8,30 @@
     "currency": "USD",
     "validUntil": "2026-10-30",
     "paymentTermsDays": 45,
-    "deliveryDays": 0,
+    "deliveryDays": null,
     "lines": [
       {
         "sku": "NB-APP-MBA-M3-13",
         "quantity": 12,
-        "unitPrice": 1087.00,
+        "unitPrice": 1087,
         "unit": "ea"
       },
       {
         "sku": "GPU-ASUS-4070S-12",
         "quantity": 8,
-        "unitPrice": 579.00,
+        "unitPrice": 579,
         "unit": "ea"
       },
       {
         "sku": "NET-UBQ-USW-24",
         "quantity": 6,
-        "unitPrice": 349.00,
+        "unitPrice": 349,
         "unit": "ea"
       },
       {
         "sku": "CPU-AMD-R5-7600X",
         "quantity": 10,
-        "unitPrice": 189.00,
+        "unitPrice": 189,
         "unit": "ea"
       }
     ],
@@ -43,5 +43,5 @@
       "1890"
     ]
   },
-  "notes": "US prices with \"$\" and thousands separators; \"in stock\" means delivery 0 days."
+  "notes": "US prices with \"$\" and thousands separators; \"in stock\" means delivery 0 days. Availability (in stock, ships within 24 hours) is not a delivery time, so deliveryDays is null."
 }

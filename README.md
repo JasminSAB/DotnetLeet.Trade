@@ -52,7 +52,11 @@ and `TRADE_MODEL` (default `llama3.2:latest`). Under Aspire the Ollama port is r
 shows it. Each case is one test. Every field is one check, and `bin/.../evals-report.md` holds the
 per-case table after a run. The history of runs and what each change bought is in `docs/evals/`.
 
-Level 1 result: 224 of 243 field checks (92%) with llama3.2 on CPU, up from 66% on the first run.
+Level 1 result on the development set: 215 of 231 field checks with llama3.2 on CPU, up from 155 on the
+first run, scored with one checker across all five runs. The five held-out emails, run once with the
+system frozen: 78 of 89 fields, 0 of 5 emails fully correct. The suppliers, emails, catalog and purchase
+history are synthetic demo data. `docs/evals/README.md` explains how the run comparison was reconstructed
+from the saved reports, because the raw model answers of the first two runs were not kept.
 
 ## Levels
 

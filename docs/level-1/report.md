@@ -7,7 +7,7 @@ Date: 2026-10-17. Scope: supplier email to draft offer, validation, manual corre
 | Step | Where | Verified how |
 |---|---|---|
 | Email in | `POST /procurement/offers/from-email`, Blazor page `/offers/new` | API call with eval case 01 and 05, HTTP 201 in 28 to 37 s on CPU |
-| Model extracts a draft | `ModelOfferExtractor` (Infrastructure), instructions `offer-extraction-v2` (Application), JSON schema with every property required | raw answer stored in `ai.calls`, visible on `/ai-calls` |
+| Model extracts a draft | `ModelOfferExtractor` (Infrastructure), instructions `offer-extraction-v3` (Application), JSON schema with every property required | raw answer stored in `ai.calls`, visible on `/ai-calls` |
 | Lines matched to the catalog | `ProductMatcher` (Domain): SKU, supplier code, part number, EAN, then a known code inside the raw line | case 01: 4 of 4 lines matched by supplier code; case 05: 4 of 4 |
 | Totals and rules | `SupplierOffer.Evaluate` + `OfferRules` (Domain): line totals, subtotal, unknown supplier, missing currency, missing or expired validity, unmatched product, missing quantity or price, duplicate line, unit mismatch, price deviation (warning above 15%, blocking at 3x) | unit tests, and the live case 05 run |
 | Same email twice | `SourceHash` in the use case, unique index on the hash | second POST returned 200 with `alreadyExisted = true` and the same id, no second model call |
@@ -24,13 +24,21 @@ Date: 2026-10-17. Scope: supplier email to draft offer, validation, manual corre
 
 ## What is measured with the model (12 emails, field checks, llama3.2 on CPU)
 
-66% (run 1) to 85% (required schema) to 90% (code in line) to 92% (instructions v2). Details in `docs/evals/`.
+Development set, one checker over 231 checks for every run: 155 (run 1, v1) to 200 (required schema) to 208 (code in line) to 212 (instructions v2) to 215 (instructions v3). Held-out set, 5 emails, one run with the system frozen: 78 of 89 fields, 0 of 5 fully correct. Details and the reconstruction of the comparison in `docs/evals/README.md`.
+
+All suppliers, emails, catalog entries and purchase prices are synthetic demo data written for the series.
 
 ## What was missing for the demonstration, and was added today
 
 1. The API to model HTTP client inherited the standard resilience handler from ServiceDefaults: 10 s per attempt, retries, 30 s total. Every real extraction was cut off. Fixed with `ConfigureAll<HttpStandardResilienceOptions>` in the API: 3 min attempt, 5 min total, no retry (Polly rejects `MaxRetryAttempts = 0`, so one attempt with a predicate that never retries).
 2. A line total read by the model as a unit price (612.50 for a pack that costs 24.50) passed with only a unit warning, because the HDMI cable had no purchase history and "pak" was not a known pack word. Added the gross deviation rule (3x the last purchase blocks), the Bosnian pack words, and the missing purchase price in the seed.
 3. `confirm` returned a generic 500 when the domain refused. Now 409 with the domain's message, so the UI can show it.
+
+## Added on review (2026-10-17, second pass)
+
+4. Instructions v3: "in stock" and "ships within 24 hours" are availability, not a delivery time, so the delivery field stays empty for them. The eval expectation of email 04 was corrected accordingly, and the development set was re-run (run 5). This replaces the v2 convention, which had the wrong semantics.
+5. All development runs re-scored with one consistent checker (see `docs/evals/README.md`). The raw answers of runs 1 and 2 were not kept, so the one check that changed is left out of the comparison instead.
+6. Five held-out emails, written after the system was frozen, run once (`docs/evals/level1-holdout.md`).
 
 ## Known limitations (stay in the post)
 

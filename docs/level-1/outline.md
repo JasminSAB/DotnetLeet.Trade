@@ -1,59 +1,52 @@
-# Post 1 outline: A Supplier Email Becomes a Draft Offer (LLM Inside the Monolith, Level 1)
+# Post 1 outline: A Supplier Email Becomes a Draft Offer
 
-## Who it is for, and the problem
+## 1. Opening: the system, the problem, the reason for a model (before any command)
 
-.NET developers in companies that buy things: resellers, distributors, any back office with a purchasing desk. The job today: a supplier emails a quote, a person retypes it into the ERP, looks up which catalog item each line is, checks the price against the last one, and only then can compare offers. Hours per day, and the expensive mistakes live there: wrong item, mistyped price, missed validity date.
+- DotnetLeet.Trade is the back office of a computer hardware reseller, built in public one working slice at a time. This slice is purchasing.
+- The problem now: a supplier's email becomes a checked draft offer in the system, instead of being retyped by hand.
+- Why a model: offers arrive as prose, tables made of spaces, pipes, tiers, in four currencies and three number formats. Parsers exist and every format adds maintenance.
+- Why this example: it mixes messy text with exact business numbers, so it shows the difference between a valid JSON answer and correct data.
+- What we are exploring: how an unreliable output fits into an application that has business rules, validation and a person at the end.
+- What the reader can run and learn by the end: run the app, paste an email, see the draft and the issues, understand where each piece of the model lives, and read a measured result with its limits.
+- Suppliers, emails, catalog and purchase history are synthetic demo data, said once in the intro.
 
-The claim: the model may read the email, but it must never decide anything. Code matches, computes and blocks. A person confirms.
+## 2. The two examples that run through the post
 
-## What the reader can run and learn
+- Northgate: a plain list with supplier codes, 4 lines, all matched, 8,387.00 EUR, no issues, confirmed.
+- Adria Komponente: cables per pack, one line states only a total, the model writes the total as the unit price, the deviation rule blocks the line, a person corrects it, confirm passes.
 
-- Clone, `dotnet run --project DotnetLeet.Trade.AppHost`, paste an email, watch it become a typed draft with issues in red. Aspire brings PostgreSQL, Ollama and the model.
-- Where each piece of the LLM lives in a clean architecture solution: instructions as a versioned embedded resource in Application, the schema DTO next to the adapter in Infrastructure, the domain that never hears about AI.
-- Why "schema valid" is not "correct", and what catches the difference.
-- How to measure instead of trusting: 12 emails, field checks, four runs, 66% to 92%.
+## 3. Run it
 
-## Two examples from the real run
+Prerequisites (Docker Desktop, .NET 10 SDK), clone, cd, tag `level-1`, one command, what Aspire starts, what the first start does, where the two example emails are in the repo, how long a call takes on CPU.
 
-1. Northgate, a plain list with supplier codes: 4 lines, all matched, 8,387.00 EUR, Manager approval if ordered, no issues, confirmed in one click. 36.7 s on CPU.
-2. Adria Komponente, cables in packs with one line that only states a total: the model wrote the total 612.50 as the unit price. The domain blocked the line (25 times the last purchase price), currency was missing, the reviewer set EUR and 24.50, the rules re-ran, confirm passed.
+## 4. Where the model lives (architecture decisions, one claim each)
 
-## Architecture decisions (short, one claim each)
+- Four pieces, four owners: instructions, email, draft, model.
+- The port does not say AI; nullable fields are the design. Null can express unknown, it does not stop the model from inventing a value (shown in section 6).
+- The domain never hears about the model: matching, totals, rules.
+- Idempotency by content hash; every model call is a row in `ai.calls`.
 
-- The LLM is four things in four places: instructions, input, output contract, model.
-- The port does not say "AI": `IOfferExtractor`, email in, draft out.
-- Nullable numbers are the point: unknown stays null and becomes an issue.
-- The model reads, the code computes: line totals, subtotal, deviation against purchase history.
-- Idempotent by content: the same email is the same offer.
-- The audit trail is a table, not a log line: `ai.calls` with input, raw output, instructions version, tokens, duration.
+## 5. Schema valid is not correct
 
-## Code to show (small, real)
+- The `required` fix: empty answers stopped in the measured run, score moves from run 1 to run 2 in the table. No explanation of why the model produced them.
+- The Adria line: valid JSON, wrong number, blocked by the deviation rule because a purchase price existed.
+- What the rules catch and what they do not: plausible wrong values pass, hence the reviewer.
 
-- `IOfferExtractor` and `OfferExtraction` (the port).
-- The `required` schema fix in `ModelOfferExtractor` (the bug that produced `{}`).
-- `OfferRules` excerpt: missing price, unmatched product, gross deviation.
-- `ExtractOfferFromEmailHandler` (the use case, no retries, no prompt text).
-- One eval case JSON and the field check idea.
+## 6. Measuring on twelve emails, then five held-out
 
-## Results (measured, from `docs/evals/`)
+- What the set is, how a check works, the five runs on one basis (231 checks, one checker), pointer to the reconstruction in `docs/evals/README.md`.
+- The split: model fields versus catalog matching, so a pipeline change is not credited to the model.
+- The honest reading: a development set, tuned and measured on the same twelve. Final state 215/231 fields, 5/12 emails fully correct.
+- Held-out: five emails, frozen system, one run, 78/89, 0/5. Invented date and payment term, the rules cannot see that.
 
-| Run | Change | Fields | Cases fully correct |
-|---|---|---|---|
-| 1 | v1, default schema | 66% | 2/12 |
-| 2 | every property required | 85% | 2/12 |
-| 3 | code found in line text | 90% | 4/12 |
-| 4 | instructions v2 | 92% | 5/12 |
+## 7. Limitations
 
-What still fails and why it does not reach the business.
+Latency on CPU, 3B model limits, codes-only matching, deviation rules need history, no PDF, no order, internal UI, and no measurement yet on unseen offers or other models.
 
-## Limitations
+## 8. Closing: what this level showed
 
-CPU latency, 3B model limits, codes-only matching, no PDF, no purchase order, internal UI.
+Shown: a reviewable flow of extraction, validation, correction and save, with every model call recorded. Not shown: that this model and configuration can be trusted without the person; no time saving measured; nothing supports autonomous processing. Then the contract: the model drafts, the rules catch what they are written to catch, a person decides.
 
 ## Screenshots
 
-Offers list, review page with blocking issues, review page after correction, AI calls, Aspire trace of one extraction.
-
-## Closing rule
-
-The model may be wrong. The system may not let the error through. Level 1 is where that split is built, before any agent.
+01 offers list, 03 Northgate reviewed, 04 Adria with the blocking line, 06 Adria corrected and confirmed, 05 AI calls, 09 Aspire trace of one extraction.

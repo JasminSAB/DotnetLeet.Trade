@@ -1,0 +1,33 @@
+{
+  "name": "h2-westport-informal-sentence",
+  "senderAddress": "mike@westport-electronics.example",
+  "email": "Subject: Re: RFQ networking gear\n\nHi Anna,\n\nquick one from me. We can do 10 units of the U6-PRO at $139 each and 4 of the USW-24-POE at $345. Terms are Net 30 as usual and everything ships within 24 hours of the PO.\n\nLet me know if you want to go ahead.\n\nThanks,\nMike\nWestport Electronics",
+  "expected": {
+    "supplierCode": "WESTPORT",
+    "supplierReference": null,
+    "currency": "USD",
+    "validUntil": null,
+    "paymentTermsDays": 30,
+    "deliveryDays": null,
+    "lines": [
+      {
+        "sku": "NET-UBQ-U6-PRO",
+        "quantity": 10,
+        "unitPrice": 139.00,
+        "unit": null
+      },
+      {
+        "sku": "NET-UBQ-USW-24",
+        "quantity": 4,
+        "unitPrice": 345.00,
+        "unit": null
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "1390",
+      "1380"
+    ]
+  },
+  "notes": "Informal sentence quote in USD with Net 30; shipping within 24 hours is availability, so deliveryDays is null."
+}

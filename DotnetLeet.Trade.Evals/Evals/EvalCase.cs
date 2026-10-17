@@ -18,9 +18,15 @@ public sealed record EvalCase(string Name, string SenderAddress, string Email, E
         ReadCommentHandling = JsonCommentHandling.Skip
     };
 
-    public static IReadOnlyList<EvalCase> LoadAll()
+    /// <summary>The development set: the twelve emails the system was tuned on.</summary>
+    public static IReadOnlyList<EvalCase> LoadAll() => LoadFolder("cases");
+
+    /// <summary>The held-out set: emails written after the prompt, the rules and the checker were frozen.</summary>
+    public static IReadOnlyList<EvalCase> LoadHoldout() => LoadFolder("holdout");
+
+    private static IReadOnlyList<EvalCase> LoadFolder(string name)
     {
-        var folder = Path.Combine(AppContext.BaseDirectory, "Evals", "cases");
+        var folder = Path.Combine(AppContext.BaseDirectory, "Evals", name);
         if (!Directory.Exists(folder))
             return [];
 

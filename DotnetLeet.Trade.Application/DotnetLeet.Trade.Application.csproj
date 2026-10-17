@@ -9,6 +9,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Procurement\Instructions\offer-extraction-v1.md" />
     <EmbeddedResource Include="Procurement\Instructions\offer-extraction-v2.md" />
+    <EmbeddedResource Include="Procurement\Instructions\offer-extraction-v3.md" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,33 @@
+{
+  "name": "h5-baltic-forwarded-thread",
+  "senderAddress": "quotes@balticcomponents.example",
+  "email": "Subject: RE: FW: Request for quotation\n\nHi Anna,\n\nsee our prices below, EUR excl. VAT:\n\nCRUSO16    Crucial 16GB DDR5-5600 SO-DIMM    30 pcs    38.70\nLOGC920    Logitech C920 HD Pro Webcam       20 pcs    52.10\n\nPayment 14 days. Delivery 2 to 3 working days.\n\nBest,\nTiina Magi\nBaltic Components OU\n\n-----Original Message-----\nFrom: Anna Kovac <anna@dotnetleet.example>\nTo: quotes@balticcomponents.example\nSubject: FW: Request for quotation\n\nHello Baltic team,\n\nplease quote us the following:\n\nSAM990P1T    Samsung 990 PRO 1TB    20 pcs\nCRUSO16      Crucial 16GB DDR5 SO-DIMM    30 pcs\nLOGC920      Logitech C920    20 pcs\n\nWe usually pay within 30 days. Thank you,\nAnna",
+  "expected": {
+    "supplierCode": "BALTIC",
+    "supplierReference": null,
+    "currency": "EUR",
+    "validUntil": null,
+    "paymentTermsDays": 14,
+    "deliveryDays": 3,
+    "lines": [
+      {
+        "sku": "RAM-CRU-SO-16-5600",
+        "quantity": 30,
+        "unitPrice": 38.70,
+        "unit": "pcs"
+      },
+      {
+        "sku": "PER-LOG-C920",
+        "quantity": 20,
+        "unitPrice": 52.10,
+        "unit": "pcs"
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "1161",
+      "1042"
+    ]
+  },
+  "notes": "Reply in a forwarded thread: only the two priced lines above the quoted request count, and the quoted 30 days is not the supplier's term."
+}

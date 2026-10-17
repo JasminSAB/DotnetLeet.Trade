@@ -1,0 +1,33 @@
+{
+  "name": "h4-unknown-sender-own-skus",
+  "senderAddress": "orders@brightwave-trading.example",
+  "email": "Subject: Offer for your enquiry\n\nHello,\n\nthanks for getting in touch. We can supply the following, prices in EUR:\n\nGPU-SAP-7800XT-16   6 x 449.00\nNET-MIK-HAP-AX3     12 x 82.50\n\nDelivery 4 days after order confirmation.\n\nBest regards,\nLars de Vries\nBrightwave Trading B.V.\nRotterdam",
+  "expected": {
+    "supplierCode": null,
+    "supplierReference": null,
+    "currency": "EUR",
+    "validUntil": null,
+    "paymentTermsDays": null,
+    "deliveryDays": 4,
+    "lines": [
+      {
+        "sku": "GPU-SAP-7800XT-16",
+        "quantity": 6,
+        "unitPrice": 449.00,
+        "unit": null
+      },
+      {
+        "sku": "NET-MIK-HAP-AX3",
+        "quantity": 12,
+        "unitPrice": 82.50,
+        "unit": null
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "2694",
+      "990"
+    ]
+  },
+  "notes": "Unknown sender domain and company gives supplierCode null; both lines use our own SKUs."
+}
