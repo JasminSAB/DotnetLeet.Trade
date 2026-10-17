@@ -1,17 +1,39 @@
+using DotnetLeet.Trade.ApiService;
+using DotnetLeet.Trade.Infrastructure;
+using DotnetLeet.Trade.Infrastructure.Persistence;
+using Microsoft.Extensions.Http.Resilience;
+using Polly;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
-// Add services to the container.
-builder.Services.AddProblemDetails();
+// Aspire integrations: the database and the model. Both come from the AppHost.
+builder.AddNpgsqlDbContext<TradeDbContext>("tradedb");
+builder.AddOllamaApiClient("extraction-model").AddChatClient();
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// A model call on a CPU takes 20 to 60 seconds. The standard resilience handler from
+// ServiceDefaults cuts every HTTP attempt at 10 seconds and retries, which aborts the
+// generation three times and then fails. One attempt, generous timeouts, no retry:
+// a retried extraction is a second model call, and the idempotency belongs to the use case.
+// The API's only outbound HTTP call is the model, so this applies to every pipeline in the API.
+builder.Services.ConfigureAll<HttpStandardResilienceOptions>(options =>
+{
+    options.AttemptTimeout.Timeout = TimeSpan.FromMinutes(3);
+    options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
+    options.Retry.MaxRetryAttempts = 1;                      // the option rejects 0
+    options.Retry.ShouldHandle = _ => PredicateResult.False(); // so no outcome ever qualifies for a retry
+    options.CircuitBreaker.SamplingDuration = TimeSpan.FromMinutes(6);
+});
+
+// Ports wired to adapters.
+builder.Services.AddTrade(builder.Configuration);
+
+builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
@@ -19,29 +41,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-string[] summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
+app.MapGet("/", () => "DotnetLeet Trade API. See /openapi/v1.json.");
 
-app.MapGet("/", () => "API service is running. Navigate to /weatherforecast to see sample data.");
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapProcurementEndpoints();
 
 app.MapDefaultEndpoints();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

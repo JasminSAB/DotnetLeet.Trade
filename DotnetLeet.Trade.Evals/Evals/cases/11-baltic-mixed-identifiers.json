@@ -1,0 +1,40 @@
+{
+  "name": "11-baltic-mixed-identifiers",
+  "senderAddress": "sales@balticcomponents.example",
+  "email": "Subject: Offer BC-Q-20261006-04\n\nTere Anna,\n\noffer as per your request list, prices in EUR per piece, excl. VAT.\n\nSSD-CRU-P3P-2T   Crucial P3 Plus 2TB NVMe        20 pcs   101.50\nMU-PC2T0T/AM     Samsung T7 Portable SSD 2TB     15 pcs   139.00\nSAMS24C310       Samsung S24C310 24 FHD monitor  30 pcs   92.40\n\nOffer no.: BC-Q-20261006-04\nValid until 2026-10-27\nPayment: 14 days net\nDelivery: 3 days\n\nBest regards,\nLiis Kask\nSales\nBaltic Components OU\nParnu mnt 139c, 11317 Tallinn",
+  "expected": {
+    "supplierCode": "BALTIC",
+    "supplierReference": "BC-Q-20261006-04",
+    "currency": "EUR",
+    "validUntil": "2026-10-27",
+    "paymentTermsDays": 14,
+    "deliveryDays": 3,
+    "lines": [
+      {
+        "sku": "SSD-CRU-P3P-2T",
+        "quantity": 20,
+        "unitPrice": 101.50,
+        "unit": "pcs"
+      },
+      {
+        "sku": "SSD-SAM-T7-2T",
+        "quantity": 15,
+        "unitPrice": 139.00,
+        "unit": "pcs"
+      },
+      {
+        "sku": "MON-SAM-S24-FHD",
+        "quantity": 30,
+        "unitPrice": 92.40,
+        "unit": "pcs"
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "2030",
+      "2085",
+      "2772"
+    ]
+  },
+  "notes": "Three identifier kinds in one email: our own SKU, an AlternateMpn alias and the supplier code."
+}

@@ -1,0 +1,33 @@
+{
+  "name": "12-northgate-noise",
+  "senderAddress": "quotes@northgate-dist.example",
+  "email": "Subject: FW: Autumn news and your quotation Q-26-4533\n\nHello Anna,\n\nAutumn at Northgate! Discover our new range of gaming components, workstation notebooks and networking gear. Visit our webshop for exclusive bundles, free shipping campaigns and loyalty rewards. Follow us on LinkedIn!\n\nYour quotation (prices in EUR, excl. VAT):\n\nNG-141470   Intel Core i7-14700K Box             10 pcs   355.00\nNG-170550   Dell Latitude 5550 15 Core Ultra 5    5 pcs   1,079.00\n\nQuotation number: Q-26-4533\nValid until: 2026-10-30\nPayment: 30 days net\nDelivery: 3 to 5 working days\n\nMarkus Weber, Northgate Distribution GmbH\n\n-----Original Message-----\nFrom: anna@dotnetleet.example\nSent: Monday, 5 October 2026 09:12\nTo: quotes@northgate-dist.example\nSubject: RFQ notebooks and CPUs\n\nHi Markus, could you quote us some CPUs and a few business notebooks for delivery this month? Thanks, Anna\n\nThis e-mail and any attachments are confidential and intended solely for the addressee. If you are not the intended recipient, please delete it and notify the sender. Northgate Distribution GmbH, registered office Stuttgart, HRB 123456. Managing director: Klaus Richter.",
+  "expected": {
+    "supplierCode": "NORTHGATE",
+    "supplierReference": "Q-26-4533",
+    "currency": "EUR",
+    "validUntil": "2026-10-30",
+    "paymentTermsDays": 30,
+    "deliveryDays": 5,
+    "lines": [
+      {
+        "sku": "CPU-INT-I7-14700K",
+        "quantity": 10,
+        "unitPrice": 355.00,
+        "unit": "pcs"
+      },
+      {
+        "sku": "NB-DELL-LAT-5550",
+        "quantity": 5,
+        "unitPrice": 1079.00,
+        "unit": "pcs"
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "3550",
+      "5395"
+    ]
+  },
+  "notes": "Two real lines buried in marketing, a forwarded thread and a disclaimer; a delivery range means the higher number."
+}

@@ -1,0 +1,33 @@
+{
+  "name": "08-northgate-expired",
+  "senderAddress": "quotes@northgate-dist.example",
+  "email": "Subject: Re: Quotation Q-26-4102\n\nHello Anna,\n\nas discussed, I am resending our earlier offer for the NAS drives. Prices in EUR, excl. VAT.\n\nNG-120044   Seagate IronWolf 4TB NAS HDD     10 pcs   104.50\nNG-120071   WD Red Plus 6TB NAS HDD           6 pcs   151.00\n\nQuotation number: Q-26-4102\nValid until: 2026-09-30\nPayment: 30 days net\nDelivery: 5 days\n\nBest regards,\nMarkus Weber\nSales Department\nNorthgate Distribution GmbH\nIndustriestrasse 14, 70565 Stuttgart",
+  "expected": {
+    "supplierCode": "NORTHGATE",
+    "supplierReference": "Q-26-4102",
+    "currency": "EUR",
+    "validUntil": "2026-09-30",
+    "paymentTermsDays": 30,
+    "deliveryDays": 5,
+    "lines": [
+      {
+        "sku": "HDD-SEA-IW-4T",
+        "quantity": 10,
+        "unitPrice": 104.50,
+        "unit": "pcs"
+      },
+      {
+        "sku": "HDD-WD-RED-6T",
+        "quantity": 6,
+        "unitPrice": 151.00,
+        "unit": "pcs"
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "1045",
+      "906"
+    ]
+  },
+  "notes": "Offer whose validUntil is before today (2026-10-08); the extraction itself must still be correct."
+}

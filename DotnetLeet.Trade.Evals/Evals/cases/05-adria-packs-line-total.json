@@ -1,0 +1,48 @@
+{
+  "name": "05-adria-packs-line-total",
+  "senderAddress": "prodaja@adria-komponente.example",
+  "email": "Subject: Ponuda PON-2026/1187\n\nPoštovana Anna,\n\nu nastavku šaljemo ponudu (cijene u EUR, bez PDV-a).\n\nAK-70002  Cat6 UTP patch kabl 2m, pack of 10     40 pak   14.20\nAK-70012  HDMI 2.1 kabl 2m, pack of 10            25 pak   ukupno 612.50\nAK-70021  USB-C 100W kabl 1m, pack of 10          20 pak   37.80\nAK-40422  Dell P2422H 24 FHD monitor              12 pcs   136.00\n\nBroj ponude: PON-2026/1187\nPonuda vrijedi do 23.10.2026.\nPlaćanje: 15 dana\nIsporuka: 5 dana\n\nLijep pozdrav,\nEmir Hodžić\nProdaja\nAdria Komponente d.o.o.\nZmaja od Bosne 8, 71000 Sarajevo",
+  "expected": {
+    "supplierCode": "ADRIA",
+    "supplierReference": "PON-2026/1187",
+    "currency": "EUR",
+    "validUntil": "2026-10-23",
+    "paymentTermsDays": 15,
+    "deliveryDays": 5,
+    "lines": [
+      {
+        "sku": "CAB-CAT6-2M-10",
+        "quantity": 40,
+        "unitPrice": 14.20,
+        "unit": "pak"
+      },
+      {
+        "sku": "CAB-HDMI-2M-10",
+        "quantity": 25,
+        "unitPrice": null,
+        "unit": "pak"
+      },
+      {
+        "sku": "CAB-USBC-1M-10",
+        "quantity": 20,
+        "unitPrice": 37.80,
+        "unit": "pak"
+      },
+      {
+        "sku": "MON-DELL-P2422H",
+        "quantity": 12,
+        "unitPrice": 136.00,
+        "unit": "pcs"
+      }
+    ],
+    "unpricedLines": 1,
+    "mustNotAppear": [
+      "24.50",
+      "24.5",
+      "568",
+      "756",
+      "1632"
+    ]
+  },
+  "notes": "Cables sold per pack; the HDMI line has only a line total, so unitPrice stays null and 24.50 must not appear."
+}

@@ -1,0 +1,87 @@
+@page "/offers/new"
+@rendermode InteractiveServer
+@inject TradeApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>New offer</PageTitle>
+
+<h1 class="h3">New offer</h1>
+<p class="text-muted">Paste the supplier's email. The model drafts the offer, the code checks it, you review it.</p>
+
+<div class="mb-3" style="max-width: 32rem;">
+    <label class="form-label" for="sender">Sender address</label>
+    <input id="sender" class="form-control" placeholder="offers@supplier.example" @bind="sender" disabled="@busy" />
+    <div class="form-text">Used to recognize the supplier by email domain. Optional.</div>
+</div>
+
+<div class="mb-3">
+    <label class="form-label" for="email">Email text</label>
+    <textarea id="email" class="form-control email-text" rows="18" @bind="emailText" disabled="@busy" spellcheck="false"></textarea>
+</div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+@if (note is not null)
+{
+    <div class="alert alert-info">@note</div>
+}
+
+<div class="d-flex align-items-center gap-3">
+    <button class="btn btn-primary" @onclick="SubmitAsync" disabled="@(busy || string.IsNullOrWhiteSpace(emailText))">
+        @if (busy)
+        {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            <text>Reading the email with the model</text>
+        }
+        else
+        {
+            <text>Submit</text>
+        }
+    </button>
+    <a class="btn btn-link" href="offers">Back to offers</a>
+</div>
+
+@code {
+    private string emailText = "";
+    private string sender = "";
+    private bool busy;
+    private string? error;
+    private string? note;
+
+    private async Task SubmitAsync()
+    {
+        if (busy || string.IsNullOrWhiteSpace(emailText))
+            return;
+
+        busy = true;
+        error = null;
+        note = null;
+
+        try
+        {
+            var result = await Api.ExtractOfferFromEmailAsync(
+                emailText,
+                string.IsNullOrWhiteSpace(sender) ? null : sender.Trim());
+
+            if (result.AlreadyExisted)
+            {
+                note = "This email was already processed, opening the existing offer";
+                StateHasChanged();
+                await Task.Delay(1500);
+            }
+
+            Nav.NavigateTo($"offers/{result.OfferId}");
+        }
+        catch (Exception ex)
+        {
+            error = Fmt.Error(ex);
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+}

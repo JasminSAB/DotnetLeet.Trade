@@ -1,6 +1,10 @@
 <Solution>
   <Project Path="DotnetLeet.Trade.ApiService/DotnetLeet.Trade.ApiService.csproj" />
   <Project Path="DotnetLeet.Trade.AppHost/DotnetLeet.Trade.AppHost.csproj" />
+  <Project Path="DotnetLeet.Trade.Application/DotnetLeet.Trade.Application.csproj" />
+  <Project Path="DotnetLeet.Trade.Domain/DotnetLeet.Trade.Domain.csproj" />
+  <Project Path="DotnetLeet.Trade.Evals/DotnetLeet.Trade.Evals.csproj" />
+  <Project Path="DotnetLeet.Trade.Infrastructure/DotnetLeet.Trade.Infrastructure.csproj" />
   <Project Path="DotnetLeet.Trade.ServiceDefaults/DotnetLeet.Trade.ServiceDefaults.csproj" />
   <Project Path="DotnetLeet.Trade.Tests/DotnetLeet.Trade.Tests.csproj" />
   <Project Path="DotnetLeet.Trade.Web/DotnetLeet.Trade.Web.csproj" />

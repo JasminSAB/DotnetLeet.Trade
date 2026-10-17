@@ -1,0 +1,47 @@
+{
+  "name": "10-unknown-supplier-mpn",
+  "senderAddress": "sales@nordlicht-handel.example",
+  "email": "Subject: Angebot ANG-2026-3382\n\nDear Anna,\n\nthank you for your request. We can offer the following, prices in EUR excl. VAT:\n\nKF556C40BB-16    Kingston FURY Beast 16GB DDR5-5600   50 pcs   43.90\nBX8071514400     Intel Core i5-14400 Box              10 pcs   196.00\nCT2000P3PSSD8    Crucial P3 Plus 2TB NVMe             20 pcs   128.50\n910-006559       Logitech MX Master 3S                15 pcs   74.80\n\nOffer no. ANG-2026-3382, valid until 2026-10-25.\nPayment 14 days net. Delivery within 3 days.\n\nKind regards,\nJonas Brandt\nVertrieb\nNordlicht Handels GmbH\nHafenstrasse 22, 20457 Hamburg",
+  "expected": {
+    "supplierCode": null,
+    "supplierReference": "ANG-2026-3382",
+    "currency": "EUR",
+    "validUntil": "2026-10-25",
+    "paymentTermsDays": 14,
+    "deliveryDays": 3,
+    "lines": [
+      {
+        "sku": "RAM-KIN-FB-16-5600",
+        "quantity": 50,
+        "unitPrice": 43.90,
+        "unit": "pcs"
+      },
+      {
+        "sku": "CPU-INT-I5-14400",
+        "quantity": 10,
+        "unitPrice": 196.00,
+        "unit": "pcs"
+      },
+      {
+        "sku": "SSD-CRU-P3P-2T",
+        "quantity": 20,
+        "unitPrice": 128.50,
+        "unit": "pcs"
+      },
+      {
+        "sku": "PER-LOG-MX3S",
+        "quantity": 15,
+        "unitPrice": 74.80,
+        "unit": "pcs"
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "2195",
+      "1960",
+      "2570",
+      "1122"
+    ]
+  },
+  "notes": "Unknown sender domain and unknown company in the signature gives supplierCode null; products still match by MPN."
+}

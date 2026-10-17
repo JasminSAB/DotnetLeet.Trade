@@ -1,0 +1,609 @@
+@page "/offers/{Id:guid}"
+@rendermode InteractiveServer
+@implements IDisposable
+@inject TradeApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>Offer review</PageTitle>
+
+@if (offer is null && loading)
+{
+    <p class="text-muted"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Loading offer</p>
+}
+else if (offer is null)
+{
+    <h1 class="h3">Offer not found</h1>
+    @if (error is not null)
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+    <a class="btn btn-link px-0" href="offers">Back to offers</a>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <a class="small text-decoration-none" href="offers">Offers</a>
+            <h1 class="h3 mb-0">
+                Offer @Fmt.Text(offer.SupplierReference)
+                <span class="badge @Fmt.StatusClass(offer.Status) align-middle fs-6">@offer.Status</span>
+            </h1>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            @if (offer.Status == OfferStatus.Draft)
+            {
+                <button class="btn btn-success" @onclick="ConfirmAsync" disabled="@(!Editable || BlockingCount > 0)">
+                    Confirm review
+                    @if (BlockingCount > 0)
+                    {
+                        <span class="badge issue-blocking ms-1">@BlockingCount blocking</span>
+                    }
+                </button>
+                <button class="btn btn-outline-danger" @onclick="() => rejecting = !rejecting" disabled="@(!Editable)">Reject</button>
+            }
+            @if (busy)
+            {
+                <span class="spinner-border spinner-border-sm text-muted" role="status" aria-label="Saving"></span>
+            }
+        </div>
+    </div>
+
+    @if (offer.Status == OfferStatus.Reviewed)
+    {
+        <div class="alert alert-success">Reviewed at @Fmt.When(offer.ReviewedAt). The offer is read-only.</div>
+    }
+    else if (offer.Status == OfferStatus.Rejected)
+    {
+        <div class="alert alert-dark">
+            Rejected at @Fmt.When(offer.ReviewedAt).
+            Reason: @Fmt.Text(offer.RejectionReason)
+        </div>
+    }
+
+    @if (error is not null)
+    {
+        <div class="alert alert-danger d-flex justify-content-between align-items-start">
+            <div>@error</div>
+            <button type="button" class="btn-close" aria-label="Dismiss" @onclick="() => error = null"></button>
+        </div>
+    }
+
+    @if (rejecting && offer.Status == OfferStatus.Draft)
+    {
+        <div class="card border-danger mb-3">
+            <div class="card-body">
+                <label class="form-label fw-semibold" for="reject-reason">Why is this offer rejected?</label>
+                <textarea id="reject-reason" class="form-control mb-2" rows="2" @bind="rejectReason" disabled="@busy"></textarea>
+                <button class="btn btn-danger me-2" @onclick="RejectAsync" disabled="@(busy || string.IsNullOrWhiteSpace(rejectReason))">Reject offer</button>
+                <button class="btn btn-link" @onclick="() => rejecting = false" disabled="@busy">Cancel</button>
+            </div>
+        </div>
+    }
+
+    <div class="card header-card mb-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <dl class="mb-0">
+                        <dt>Supplier</dt>
+                        <dd>
+                            @if (offer.SupplierId is not null)
+                            {
+                                <span>@Fmt.Text(offer.SupplierName)</span>
+                            }
+                            else if (IsDraft && suppliers is { Count: > 0 })
+                            {
+                                <select class="form-select form-select-sm header-input" disabled="@busy" @onchange="AssignSupplierAsync">
+                                    <option value="">Assign a supplier</option>
+                                    @foreach (var s in suppliers)
+                                    {
+                                        <option value="@s.Id">@s.Code, @s.Name (@s.Currency)</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <span class="no-match">unknown</span>
+                            }
+                        </dd>
+                        <dt>Sender</dt>
+                        <dd>@Fmt.Text(offer.SenderAddress)</dd>
+                        <dt>Reference</dt>
+                        <dd>@Fmt.Text(offer.SupplierReference)</dd>
+                        <dt>Received at</dt>
+                        <dd>@Fmt.When(offer.ReceivedAt)</dd>
+                    </dl>
+                </div>
+                <div class="col-md-4">
+                    <dl class="mb-0">
+                        <dt>Currency</dt>
+                        <dd>
+                            @if (IsDraft)
+                            {
+                                <input class="form-control form-control-sm header-input text-uppercase" disabled="@busy" maxlength="3" value="@(offer.Currency ?? "")" @onchange="ChangeCurrencyAsync" />
+                            }
+                            else
+                            {
+                                @Fmt.Text(offer.Currency)
+                            }
+                        </dd>
+                        <dt>Valid until</dt>
+                        <dd>
+                            @if (IsDraft)
+                            {
+                                <input type="date" class="form-control form-control-sm header-input" disabled="@busy" value="@Fmt.InputValue(offer.ValidUntil)" @onchange="ChangeValidUntilAsync" />
+                            }
+                            else
+                            {
+                                @Fmt.Date(offer.ValidUntil)
+                            }
+                        </dd>
+                        <dt>Payment terms (days)</dt>
+                        <dd>
+                            @if (IsDraft)
+                            {
+                                <input type="number" min="0" class="form-control form-control-sm header-input" disabled="@busy" value="@Fmt.InputValue(offer.PaymentTermsDays)" @onchange="ChangePaymentTermsAsync" />
+                            }
+                            else
+                            {
+                                @Fmt.Int(offer.PaymentTermsDays)
+                            }
+                        </dd>
+                        <dt>Delivery (days)</dt>
+                        <dd>
+                            @if (IsDraft)
+                            {
+                                <input type="number" min="0" class="form-control form-control-sm header-input" disabled="@busy" value="@Fmt.InputValue(offer.DeliveryDays)" @onchange="ChangeDeliveryDaysAsync" />
+                            }
+                            else
+                            {
+                                @Fmt.Int(offer.DeliveryDays)
+                            }
+                        </dd>
+                    </dl>
+                </div>
+                <div class="col-md-4">
+                    <dl class="mb-0">
+                        <dt>Status</dt>
+                        <dd><span class="badge @Fmt.StatusClass(offer.Status)">@offer.Status</span></dd>
+                        <dt>Approval if ordered</dt>
+                        <dd>@Fmt.ApprovalLabel(offer.ApprovalIfOrdered)</dd>
+                        <dt>Subtotal</dt>
+                        <dd class="num fs-5">@Fmt.Money(offer.Subtotal) <span class="text-muted fs-6">@Fmt.Text(offer.Currency)</span></dd>
+                        <dt>Unpriced lines</dt>
+                        <dd>
+                            @if (offer.UnpricedLines > 0)
+                            {
+                                <span class="issue-warning-text">@offer.UnpricedLines</span>
+                            }
+                            else
+                            {
+                                <span>0</span>
+                            }
+                        </dd>
+                        @if (offer.ExtractionCallId is { } callId)
+                        {
+                            <dt>Extraction</dt>
+                            <dd><a href="ai-calls#@callId">AI call</a></dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+
+            @if (offer.Issues.Count > 0)
+            {
+                <hr class="my-2" />
+                <ul class="issue-list">
+                    @foreach (var issue in offer.Issues.OrderBy(i => i.Severity))
+                    {
+                        <li>
+                            <span class="badge @Fmt.IssueClass(issue.Severity)">@issue.Severity</span>
+                            <span class="@(issue.Severity == IssueSeverity.Blocking ? "issue-blocking-text" : "issue-warning-text")">@issue.Message</span>
+                            <span class="text-muted small">(@issue.Code)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    <h2 class="h5">Lines <span class="text-muted fw-normal">(@offer.Lines.Count)</span></h2>
+
+    @if (offer.Lines.Count == 0)
+    {
+        <p class="text-muted">The model found no lines in this email.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle lines-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>As written</th>
+                        <th>Supplier code</th>
+                        <th>MPN</th>
+                        <th>Description</th>
+                        <th class="text-end">Quantity</th>
+                        <th class="text-end">Unit price</th>
+                        <th>Unit</th>
+                        <th class="text-end">Line total</th>
+                        <th>Product</th>
+                        <th>Match</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var line in offer.Lines)
+                    {
+                        <tr>
+                            <td class="text-muted">@line.LineNo</td>
+                            <td><div class="raw-text">@Fmt.Text(line.RawText)</div></td>
+                            <td>@Fmt.Text(line.SupplierCode)</td>
+                            <td>@Fmt.Text(line.ManufacturerPartNumber)</td>
+                            <td>@Fmt.Text(line.Description)</td>
+                            <td class="text-end num">
+                                @if (IsDraft)
+                                {
+                                    <input type="number" step="any" min="0" class="form-control form-control-sm line-input" disabled="@busy" value="@Fmt.InputValue(line.Quantity)" @onchange="e => ChangeQuantityAsync(line, e)" />
+                                }
+                                else
+                                {
+                                    @Fmt.Quantity(line.Quantity)
+                                }
+                            </td>
+                            <td class="text-end num">
+                                @if (IsDraft)
+                                {
+                                    <input type="number" step="0.01" min="0" class="form-control form-control-sm line-input" disabled="@busy" value="@Fmt.InputValue(line.UnitPrice)" @onchange="e => ChangeUnitPriceAsync(line, e)" />
+                                }
+                                else
+                                {
+                                    @Fmt.Money(line.UnitPrice)
+                                }
+                            </td>
+                            <td>@Fmt.Text(line.Unit)</td>
+                            <td class="text-end num">@Fmt.Money(line.LineTotal)</td>
+                            <td>
+                                @if (line.ProductId is not null)
+                                {
+                                    <div class="matched">
+                                        <span class="fw-semibold">@Fmt.Text(line.ProductSku)</span>
+                                        <span>@Fmt.Text(line.ProductName)</span>
+                                    </div>
+                                    @if (IsDraft && searchLineId != line.Id)
+                                    {
+                                        <button class="btn btn-link btn-sm p-0" @onclick="() => OpenSearch(line)">change</button>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="no-match">no match</span>
+                                    @if (IsDraft && searchLineId != line.Id)
+                                    {
+                                        <button class="btn btn-link btn-sm p-0 ms-2" @onclick="() => OpenSearch(line)">find product</button>
+                                    }
+                                }
+
+                                @if (IsDraft && searchLineId == line.Id)
+                                {
+                                    <div class="product-search mt-1">
+                                        <div class="input-group input-group-sm">
+                                            <input class="form-control" placeholder="SKU, MPN or name" value="@searchTerm" disabled="@busy" @oninput="SearchInputAsync" />
+                                            <button class="btn btn-outline-secondary" @onclick="CloseSearch" title="Close">×</button>
+                                        </div>
+                                        @if (searching)
+                                        {
+                                            <div class="small text-muted mt-1">Searching</div>
+                                        }
+                                        else if (searchResults.Count > 0)
+                                        {
+                                            <div class="product-results">
+                                                @foreach (var product in searchResults)
+                                                {
+                                                    <button type="button" @onclick="() => PickProductAsync(line, product)">
+                                                        <span class="fw-semibold">@product.Sku</span> @product.Name
+                                                        <span class="text-muted">@product.Manufacturer @product.ManufacturerPartNumber</span>
+                                                    </button>
+                                                }
+                                            </div>
+                                        }
+                                        else if (searchTerm.Trim().Length >= 2)
+                                        {
+                                            <div class="small text-muted mt-1">Nothing in the catalog matches.</div>
+                                        }
+                                    </div>
+                                }
+                            </td>
+                            <td class="small">@Fmt.MatchMethodLabel(line.MatchMethod)</td>
+                            <td>
+                                @if (line.CorrectedByReviewer)
+                                {
+                                    <span class="badge text-bg-info" title="Corrected by a reviewer">corrected</span>
+                                }
+                            </td>
+                        </tr>
+                        @if (line.Issues.Count > 0)
+                        {
+                            <tr class="line-issues">
+                                <td></td>
+                                <td colspan="11">
+                                    <ul class="issue-list">
+                                        @foreach (var issue in line.Issues.OrderBy(i => i.Severity))
+                                        {
+                                            <li>
+                                                <span class="badge @Fmt.IssueClass(issue.Severity)">@issue.Severity</span>
+                                                <span class="@(issue.Severity == IssueSeverity.Blocking ? "issue-blocking-text" : "issue-warning-text")">@issue.Message</span>
+                                                <span class="text-muted small">(@issue.Code)</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="8" class="text-end fw-semibold">Subtotal</td>
+                        <td class="text-end num fw-semibold">@Fmt.Money(offer.Subtotal)</td>
+                        <td colspan="3" class="text-muted small">
+                            @if (offer.UnpricedLines > 0)
+                            {
+                                <span>@offer.UnpricedLines line(s) without a price are not in the subtotal.</span>
+                            }
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
+
+    <div class="card mt-3">
+        <div class="card-header p-0">
+            <button class="btn btn-link text-decoration-none w-100 text-start" @onclick="() => showSource = !showSource">
+                @(showSource ? "▾" : "▸") Source email
+            </button>
+        </div>
+        @if (showSource)
+        {
+            <div class="card-body">
+                <pre class="source-text mb-0">@offer.SourceText</pre>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private OfferDetail? offer;
+    private IReadOnlyList<SupplierSummary>? suppliers;
+    private bool loading = true;
+    private bool busy;
+    private string? error;
+    private bool showSource;
+    private bool rejecting;
+    private string rejectReason = "";
+
+    private Guid? searchLineId;
+    private string searchTerm = "";
+    private IReadOnlyList<ProductSummary> searchResults = [];
+    private bool searching;
+    private CancellationTokenSource? searchCts;
+
+    private bool IsDraft => offer is { Status: OfferStatus.Draft };
+
+    private bool Editable => IsDraft && !busy;
+
+    private int BlockingCount => offer is null
+        ? 0
+        : offer.Issues.Count(i => i.Severity == IssueSeverity.Blocking)
+          + offer.Lines.Sum(l => l.Issues.Count(i => i.Severity == IssueSeverity.Blocking));
+
+    protected override async Task OnParametersSetAsync()
+    {
+        CloseSearch();
+        rejecting = false;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        try
+        {
+            offer = await Api.GetOfferAsync(Id);
+            suppliers ??= await Api.ListSuppliersAsync();
+        }
+        catch (Exception ex)
+        {
+            error = Fmt.Error(ex);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    /// <summary>One command, then the offer is reloaded so totals and issues are about the current numbers.</summary>
+    private async Task RunAsync(Func<Task> command)
+    {
+        if (busy)
+            return;
+
+        busy = true;
+        error = null;
+
+        try
+        {
+            await command();
+        }
+        catch (Exception ex)
+        {
+            error = Fmt.Error(ex);
+        }
+        finally
+        {
+            busy = false;
+        }
+
+        await LoadAsync();
+    }
+
+    // Header
+
+    private Task AssignSupplierAsync(ChangeEventArgs e)
+    {
+        if (!Guid.TryParse(e.Value?.ToString(), out var supplierId))
+            return Task.CompletedTask;
+
+        return RunAsync(() => Api.CorrectHeaderAsync(Id, supplierId, null, null, null, null));
+    }
+
+    private Task ChangeCurrencyAsync(ChangeEventArgs e)
+    {
+        var currency = e.Value?.ToString()?.Trim().ToUpperInvariant();
+        if (string.IsNullOrWhiteSpace(currency) || currency == offer?.Currency)
+            return Task.CompletedTask;
+
+        return RunAsync(() => Api.CorrectHeaderAsync(Id, null, currency, null, null, null));
+    }
+
+    private Task ChangeValidUntilAsync(ChangeEventArgs e)
+    {
+        var date = Fmt.ParseDate(e.Value);
+        if (date is null || date == offer?.ValidUntil)
+            return Task.CompletedTask;
+
+        return RunAsync(() => Api.CorrectHeaderAsync(Id, null, null, date, null, null));
+    }
+
+    private Task ChangePaymentTermsAsync(ChangeEventArgs e)
+    {
+        var days = Fmt.ParseInt(e.Value);
+        if (days is null || days == offer?.PaymentTermsDays)
+            return Task.CompletedTask;
+
+        return RunAsync(() => Api.CorrectHeaderAsync(Id, null, null, null, days, null));
+    }
+
+    private Task ChangeDeliveryDaysAsync(ChangeEventArgs e)
+    {
+        var days = Fmt.ParseInt(e.Value);
+        if (days is null || days == offer?.DeliveryDays)
+            return Task.CompletedTask;
+
+        return RunAsync(() => Api.CorrectHeaderAsync(Id, null, null, null, null, days));
+    }
+
+    // Lines
+
+    private Task ChangeQuantityAsync(OfferLineDetail line, ChangeEventArgs e)
+    {
+        var quantity = Fmt.ParseDecimal(e.Value);
+        if (quantity is null || quantity == line.Quantity)
+            return Task.CompletedTask;
+
+        return RunAsync(() => Api.CorrectLineAsync(Id, line.Id, quantity, null, null));
+    }
+
+    private Task ChangeUnitPriceAsync(OfferLineDetail line, ChangeEventArgs e)
+    {
+        var price = Fmt.ParseDecimal(e.Value);
+        if (price is null || price == line.UnitPrice)
+            return Task.CompletedTask;
+
+        return RunAsync(() => Api.CorrectLineAsync(Id, line.Id, null, price, null));
+    }
+
+    private Task PickProductAsync(OfferLineDetail line, ProductSummary product)
+    {
+        CloseSearch();
+        return RunAsync(() => Api.CorrectLineAsync(Id, line.Id, null, null, product.Id));
+    }
+
+    // Product search
+
+    private void OpenSearch(OfferLineDetail line)
+    {
+        searchLineId = line.Id;
+        searchTerm = "";
+        searchResults = [];
+        searching = false;
+    }
+
+    private void CloseSearch()
+    {
+        searchCts?.Cancel();
+        searchLineId = null;
+        searchTerm = "";
+        searchResults = [];
+        searching = false;
+    }
+
+    private async Task SearchInputAsync(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+
+        searchCts?.Cancel();
+        searchCts?.Dispose();
+        searchCts = new CancellationTokenSource();
+        var ct = searchCts.Token;
+
+        var term = searchTerm.Trim();
+        if (term.Length < 2)
+        {
+            searchResults = [];
+            searching = false;
+            return;
+        }
+
+        try
+        {
+            await Task.Delay(300, ct);
+            searching = true;
+            StateHasChanged();
+            var found = await Api.SearchProductsAsync(term, 20, ct);
+            if (!ct.IsCancellationRequested)
+            {
+                searchResults = found;
+                searching = false;
+            }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // A newer keystroke took over.
+        }
+        catch (Exception ex)
+        {
+            error = Fmt.Error(ex);
+            searching = false;
+        }
+    }
+
+    // Review
+
+    private Task ConfirmAsync() => RunAsync(() => Api.ConfirmReviewAsync(Id));
+
+    private async Task RejectAsync()
+    {
+        var reason = rejectReason.Trim();
+        if (reason.Length == 0)
+            return;
+
+        await RunAsync(() => Api.RejectAsync(Id, reason));
+
+        if (error is null)
+        {
+            rejecting = false;
+            rejectReason = "";
+        }
+    }
+
+    public void Dispose()
+    {
+        searchCts?.Cancel();
+        searchCts?.Dispose();
+    }
+}

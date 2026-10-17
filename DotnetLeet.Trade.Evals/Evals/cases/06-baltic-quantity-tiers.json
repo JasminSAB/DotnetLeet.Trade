@@ -1,0 +1,40 @@
+{
+  "name": "06-baltic-quantity-tiers",
+  "senderAddress": "sales@balticcomponents.example",
+  "email": "Subject: Offer BC-Q-20261003-12\n\nTere Anna,\n\nhere is our offer with volume pricing. Prices in EUR per piece, excl. VAT.\n\nSAM990P1T  Samsung 990 PRO 1TB NVMe\n   10 pcs: 95.00\n   50 pcs: 89.00\nCRUP3P1T   Crucial P3 Plus 1TB NVMe\n   40 pcs: 53.50\n\nOffer no.: BC-Q-20261003-12\nValid until 2026-10-28\nPayment terms: 14 days\nDelivery: 3 days\n\nBest regards,\nLiis Kask\nSales\nBaltic Components OU\nParnu mnt 139c, 11317 Tallinn",
+  "expected": {
+    "supplierCode": "BALTIC",
+    "supplierReference": "BC-Q-20261003-12",
+    "currency": "EUR",
+    "validUntil": "2026-10-28",
+    "paymentTermsDays": 14,
+    "deliveryDays": 3,
+    "lines": [
+      {
+        "sku": "SSD-SAM-990P-1T",
+        "quantity": 10,
+        "unitPrice": 95.00,
+        "unit": "pcs"
+      },
+      {
+        "sku": "SSD-SAM-990P-1T",
+        "quantity": 50,
+        "unitPrice": 89.00,
+        "unit": "pcs"
+      },
+      {
+        "sku": "SSD-CRU-P3P-1T",
+        "quantity": 40,
+        "unitPrice": 53.50,
+        "unit": "pcs"
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "950",
+      "4450",
+      "2140"
+    ]
+  },
+  "notes": "Quantity tiers for one product become one line per tier."
+}

@@ -8,9 +8,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotnetLeet.Trade.ServiceDefaults\DotnetLeet.Trade.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\DotnetLeet.Trade.Application\DotnetLeet.Trade.Application.csproj" />
+    <ProjectReference Include="..\DotnetLeet.Trade.Infrastructure\DotnetLeet.Trade.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.3.0" />
+    <PackageReference Include="CommunityToolkit.Aspire.OllamaSharp" Version="13.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
   </ItemGroup>
 

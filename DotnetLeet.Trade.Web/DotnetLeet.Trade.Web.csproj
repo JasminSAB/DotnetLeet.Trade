@@ -8,10 +8,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DotnetLeet.Trade.ServiceDefaults\DotnetLeet.Trade.ServiceDefaults.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Aspire.StackExchange.Redis.OutputCaching" Version="13.2.4" />
+    <!-- Only for the DTO record types (queries, commands, AiCall). The Web project talks to the API over HTTP. -->
+    <ProjectReference Include="..\DotnetLeet.Trade.Application\DotnetLeet.Trade.Application.csproj" />
   </ItemGroup>
 
 </Project>

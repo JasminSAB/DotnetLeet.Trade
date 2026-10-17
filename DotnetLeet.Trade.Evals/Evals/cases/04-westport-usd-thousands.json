@@ -1,0 +1,47 @@
+{
+  "name": "04-westport-usd-thousands",
+  "senderAddress": "quotes@westport-electronics.example",
+  "email": "Subject: Quote WQ-2026-10-0719\n\nHi Anna,\n\nHere is the quote you asked for. Prices in USD, FOB our Newark warehouse.\n\nWE-90013   Apple MacBook Air 13 M3 16GB 256GB     12 ea   $1,087.00\nWE-80470   ASUS Dual GeForce RTX 4070 SUPER 12GB   8 ea    $579.00\nWE-95024   Ubiquiti UniFi Switch 24 PoE            6 ea    $349.00\nWE-70593   AMD Ryzen 5 7600X                       10 ea   $189.00\n\nQuote #: WQ-2026-10-0719\nValid through October 30, 2026\nTerms: Net 45\nAll items in stock, ships within 24 hours.\n\nThanks,\nDave Mitchell\nAccount Executive\nWestport Electronics Inc\n1200 Harbor Blvd, Newark, NJ 07105",
+  "expected": {
+    "supplierCode": "WESTPORT",
+    "supplierReference": "WQ-2026-10-0719",
+    "currency": "USD",
+    "validUntil": "2026-10-30",
+    "paymentTermsDays": 45,
+    "deliveryDays": 0,
+    "lines": [
+      {
+        "sku": "NB-APP-MBA-M3-13",
+        "quantity": 12,
+        "unitPrice": 1087.00,
+        "unit": "ea"
+      },
+      {
+        "sku": "GPU-ASUS-4070S-12",
+        "quantity": 8,
+        "unitPrice": 579.00,
+        "unit": "ea"
+      },
+      {
+        "sku": "NET-UBQ-USW-24",
+        "quantity": 6,
+        "unitPrice": 349.00,
+        "unit": "ea"
+      },
+      {
+        "sku": "CPU-AMD-R5-7600X",
+        "quantity": 10,
+        "unitPrice": 189.00,
+        "unit": "ea"
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "13044",
+      "4632",
+      "2094",
+      "1890"
+    ]
+  },
+  "notes": "US prices with \"$\" and thousands separators; \"in stock\" means delivery 0 days."
+}

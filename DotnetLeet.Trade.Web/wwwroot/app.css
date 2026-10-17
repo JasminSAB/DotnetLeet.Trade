@@ -54,3 +54,139 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* DotnetLeet Trade back office */
+
+.num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.row-link {
+    cursor: pointer;
+}
+
+.badge.issue-blocking {
+    background-color: #8b0000;
+    color: #fff;
+}
+
+.badge.issue-warning {
+    background-color: #b7791f;
+    color: #fff;
+}
+
+.issue-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+    .issue-list li {
+        padding: 0.1rem 0;
+        font-size: 0.875rem;
+    }
+
+.issue-blocking-text {
+    color: #8b0000;
+}
+
+.issue-warning-text {
+    color: #8a5a00;
+}
+
+.matched {
+    color: #1e7b34;
+}
+
+.no-match {
+    color: #8b0000;
+    font-weight: 600;
+}
+
+.raw-text {
+    font-size: 0.78rem;
+    color: #6c757d;
+    max-width: 18rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.line-input {
+    width: 7rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.line-issues td {
+    border-top: 0;
+    padding-top: 0;
+    padding-bottom: 0.5rem;
+    background-color: #fbfbfb;
+}
+
+.email-text, .source-text, .call-text {
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 0.85rem;
+}
+
+.source-text, .call-text {
+    background-color: #f7f7f7;
+    border: 1px solid #e3e3e3;
+    border-radius: 4px;
+    padding: 0.75rem;
+    max-height: 32rem;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.product-search {
+    position: relative;
+    min-width: 16rem;
+}
+
+.product-results {
+    position: absolute;
+    z-index: 20;
+    left: 0;
+    right: 0;
+    max-height: 18rem;
+    overflow: auto;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+    .product-results button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        padding: 0.35rem 0.6rem;
+        font-size: 0.875rem;
+    }
+
+        .product-results button:hover {
+            background-color: #eef4fb;
+        }
+
+.header-card dt {
+    font-weight: 500;
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.header-card dd {
+    margin-bottom: 0.6rem;
+}
+
+.header-input {
+    max-width: 11rem;
+}
+
+.call-detail td {
+    background-color: #fbfbfb;
+}

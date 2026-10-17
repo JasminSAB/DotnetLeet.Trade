@@ -1,0 +1,54 @@
+{
+  "name": "03-helix-gbp-table",
+  "senderAddress": "accounts@helixitsupply.example",
+  "email": "Subject: Quote HIX-QT-88213\n\nHi Anna,\n\nThanks for the RFQ. Our best prices are below, all in GBP, ex VAT.\n\n| Code           | Description                         | Qty | Unit | Price (GBP) |\n| HX-WD-SN580-1  | WD Blue SN580 1TB NVMe              | 25  | pcs  | 56.40       |\n| HX-SEA-IW4     | Seagate IronWolf 4TB NAS HDD        | 10  | pcs  | 104.90      |\n| HX-INT-14400   | Intel Core i5-14400 Box             | 12  | pcs  | 187.25      |\n| HX-DELL-WD22   | Dell WD22TB4 Thunderbolt 4 Dock     | 8   | pcs  | 205.00      |\n| HX-NET-GS308   | Netgear GS308 8-port Gigabit Switch | 20  | pcs  | 21.60       |\n\nQuote ref: HIX-QT-88213\nValid until 6 November 2026\nTerms: 30 days from invoice date\nLead time: 4 days\n\nRegards,\nOliver Hughes\nKey Accounts\nHelix IT Supply Ltd\nUnit 7, Tamworth Business Park, Tamworth B77 4DP, UK",
+  "expected": {
+    "supplierCode": "HELIX",
+    "supplierReference": "HIX-QT-88213",
+    "currency": "GBP",
+    "validUntil": "2026-11-06",
+    "paymentTermsDays": 30,
+    "deliveryDays": 4,
+    "lines": [
+      {
+        "sku": "SSD-WD-SN580-1T",
+        "quantity": 25,
+        "unitPrice": 56.40,
+        "unit": "pcs"
+      },
+      {
+        "sku": "HDD-SEA-IW-4T",
+        "quantity": 10,
+        "unitPrice": 104.90,
+        "unit": "pcs"
+      },
+      {
+        "sku": "CPU-INT-I5-14400",
+        "quantity": 12,
+        "unitPrice": 187.25,
+        "unit": "pcs"
+      },
+      {
+        "sku": "PER-DELL-WD22TB4",
+        "quantity": 8,
+        "unitPrice": 205.00,
+        "unit": "pcs"
+      },
+      {
+        "sku": null,
+        "quantity": 20,
+        "unitPrice": 21.60,
+        "unit": "pcs"
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "1410",
+      "1049",
+      "2247",
+      "1640",
+      "432"
+    ]
+  },
+  "notes": "Pipe-separated table in GBP; the Netgear switch is not in the catalog so its sku is null."
+}

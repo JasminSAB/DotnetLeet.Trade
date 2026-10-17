@@ -1,0 +1,41 @@
+{
+  "name": "07-adria-no-currency",
+  "senderAddress": "prodaja@adria-komponente.example",
+  "email": "Subject: Ponuda AK/2026/0911\n\nPoštovana Anna,\n\nšaljemo traženu ponudu.\n\nAK-20032   Kingston FURY Beast 32GB kit DDR5   30 pcs   85.50\nAK-20416   Kingston ValueRAM 16GB DDR4-3200    40 pcs   30.80\nAK-50108   TP-Link TL-SG108 switch             25 pcs   17.90\n\nPonuda broj: AK/2026/0911\nVrijedi do 20.10.2026.\nPlaćanje 15 dana, isporuka 2 dana.\n\nPozdrav,\nSelma Begić\nProdaja\nAdria Komponente d.o.o.\nZmaja od Bosne 8, 71000 Sarajevo",
+  "expected": {
+    "supplierCode": "ADRIA",
+    "supplierReference": "AK/2026/0911",
+    "currency": null,
+    "validUntil": "2026-10-20",
+    "paymentTermsDays": 15,
+    "deliveryDays": 2,
+    "lines": [
+      {
+        "sku": "RAM-KIN-FB-32K-5600",
+        "quantity": 30,
+        "unitPrice": 85.50,
+        "unit": "pcs"
+      },
+      {
+        "sku": "RAM-KIN-VR-16-3200",
+        "quantity": 40,
+        "unitPrice": 30.80,
+        "unit": "pcs"
+      },
+      {
+        "sku": "NET-TPL-SG108",
+        "quantity": 25,
+        "unitPrice": 17.90,
+        "unit": "pcs"
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "2565",
+      "1232",
+      "447.5",
+      "447.50"
+    ]
+  },
+  "notes": "Prices without any currency anywhere, so currency must be null, not guessed from the supplier."
+}

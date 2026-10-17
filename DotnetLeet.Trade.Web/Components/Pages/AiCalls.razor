@@ -1,0 +1,105 @@
+@page "/ai-calls"
+@rendermode InteractiveServer
+@inject TradeApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>AI calls</PageTitle>
+
+<h1 class="h3">AI calls</h1>
+<p class="text-muted">Every call to the model: what went in, what came out, what it cost.</p>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+@if (calls is null)
+{
+    <p class="text-muted"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Loading calls</p>
+}
+else if (calls.Count == 0)
+{
+    <p class="text-muted">No calls yet.</p>
+}
+else
+{
+    <table class="table table-sm table-hover align-middle">
+        <thead>
+            <tr>
+                <th style="width: 2rem;"></th>
+                <th>At</th>
+                <th>Purpose</th>
+                <th>Instructions</th>
+                <th>Model</th>
+                <th class="text-end">Input tokens</th>
+                <th class="text-end">Output tokens</th>
+                <th class="text-end">Duration</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var call in calls)
+            {
+                var open = expanded.Contains(call.Id);
+                <tr id="@call.Id" class="row-link @(open ? "table-active" : "")" @onclick="() => Toggle(call.Id)">
+                    <td class="text-muted">@(open ? "▾" : "▸")</td>
+                    <td>@Fmt.When(call.At)</td>
+                    <td>@Fmt.Text(call.Purpose)</td>
+                    <td><code>@Fmt.Text(call.InstructionsVersion)</code></td>
+                    <td>@Fmt.Text(call.Model)</td>
+                    <td class="text-end num">@Fmt.Long(call.InputTokens)</td>
+                    <td class="text-end num">@Fmt.Long(call.OutputTokens)</td>
+                    <td class="text-end num">@Fmt.Duration(call.Duration)</td>
+                </tr>
+                @if (open)
+                {
+                    <tr class="call-detail">
+                        <td></td>
+                        <td colspan="7">
+                            <div class="row g-3">
+                                <div class="col-lg-6">
+                                    <div class="small fw-semibold text-muted mb-1">Input</div>
+                                    <pre class="call-text">@call.Input</pre>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="small fw-semibold text-muted mb-1">Raw output</div>
+                                    <pre class="call-text">@call.RawOutput</pre>
+                                </div>
+                            </div>
+                            <div class="small text-muted mt-2">Call id <code>@call.Id</code></div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IReadOnlyList<AiCall>? calls;
+    private readonly HashSet<Guid> expanded = [];
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // /ai-calls#{id} opens that call, the offer screen links here.
+        var fragment = new Uri(Nav.Uri).Fragment.TrimStart('#');
+        if (Guid.TryParse(fragment, out var wanted))
+            expanded.Add(wanted);
+
+        try
+        {
+            calls = await Api.ListAiCallsAsync();
+        }
+        catch (Exception ex)
+        {
+            error = Fmt.Error(ex);
+            calls = [];
+        }
+    }
+
+    private void Toggle(Guid id)
+    {
+        if (!expanded.Remove(id))
+            expanded.Add(id);
+    }
+}

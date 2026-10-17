@@ -1,0 +1,47 @@
+{
+  "name": "01-northgate-plain-list",
+  "senderAddress": "quotes@northgate-dist.example",
+  "email": "Subject: Quotation Q-26-4471\n\nHello Anna,\n\nthank you for your enquiry. Please find our offer below. All prices in EUR, excl. VAT.\n\nItem        Description                              Qty  Unit  Unit price\nNG-114422   Samsung 990 PRO 1TB NVMe M.2 SSD         20   pcs   97.50\nNG-131002   Kingston FURY Beast 32GB DDR5 Kit        20   pcs   84.90\nNG-140593   AMD Ryzen 5 7600X Box                    10   pcs   186.50\nNG-160723   Dell UltraSharp U2723QE 27 4K            6    pcs   479.00\n\nQuotation number: Q-26-4471\nValid until: 2026-10-31\nPayment: 30 days net\nDelivery: 3 days after order confirmation\n\nBest regards,\nMarkus Weber\nSales Department\nNorthgate Distribution GmbH\nIndustriestrasse 14, 70565 Stuttgart",
+  "expected": {
+    "supplierCode": "NORTHGATE",
+    "supplierReference": "Q-26-4471",
+    "currency": "EUR",
+    "validUntil": "2026-10-31",
+    "paymentTermsDays": 30,
+    "deliveryDays": 3,
+    "lines": [
+      {
+        "sku": "SSD-SAM-990P-1T",
+        "quantity": 20,
+        "unitPrice": 97.50,
+        "unit": "pcs"
+      },
+      {
+        "sku": "RAM-KIN-FB-32K-5600",
+        "quantity": 20,
+        "unitPrice": 84.90,
+        "unit": "pcs"
+      },
+      {
+        "sku": "CPU-AMD-R5-7600X",
+        "quantity": 10,
+        "unitPrice": 186.50,
+        "unit": "pcs"
+      },
+      {
+        "sku": "MON-DELL-U2723QE",
+        "quantity": 6,
+        "unitPrice": 479.00,
+        "unit": "pcs"
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "1950",
+      "1698",
+      "1865",
+      "2874"
+    ]
+  },
+  "notes": "Easy baseline: supplier codes and every field stated."
+}

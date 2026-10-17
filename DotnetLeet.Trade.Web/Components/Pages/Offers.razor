@@ -1,0 +1,87 @@
+@page "/"
+@page "/offers"
+@rendermode InteractiveServer
+@inject TradeApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>Offers</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Offers</h1>
+    <a class="btn btn-primary" href="offers/new">New offer</a>
+</div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+@if (offers is null)
+{
+    <p class="text-muted"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Loading offers</p>
+}
+else if (offers.Count == 0)
+{
+    <p class="text-muted">No offers yet. Paste a supplier email under <a href="offers/new">New offer</a>.</p>
+}
+else
+{
+    <table class="table table-sm table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Supplier</th>
+                <th>Reference</th>
+                <th>Currency</th>
+                <th class="text-end">Subtotal</th>
+                <th class="text-end">Lines</th>
+                <th class="text-end">Blocking</th>
+                <th>Status</th>
+                <th>Received at</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var offer in offers)
+            {
+                <tr class="row-link" @onclick="() => Open(offer.Id)">
+                    <td>@Fmt.Text(offer.SupplierName)</td>
+                    <td>@Fmt.Text(offer.SupplierReference)</td>
+                    <td>@Fmt.Text(offer.Currency)</td>
+                    <td class="text-end num">@Fmt.Money(offer.Subtotal)</td>
+                    <td class="text-end num">@offer.Lines</td>
+                    <td class="text-end num">
+                        @if (offer.BlockingIssues > 0)
+                        {
+                            <span class="badge issue-blocking">@offer.BlockingIssues</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">0</span>
+                        }
+                    </td>
+                    <td><span class="badge @Fmt.StatusClass(offer.Status)">@offer.Status</span></td>
+                    <td>@Fmt.When(offer.ReceivedAt)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IReadOnlyList<OfferSummary>? offers;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            offers = await Api.ListOffersAsync();
+        }
+        catch (Exception ex)
+        {
+            error = Fmt.Error(ex);
+            offers = [];
+        }
+    }
+
+    private void Open(Guid id) => Nav.NavigateTo($"offers/{id}");
+}

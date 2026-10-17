@@ -1,0 +1,47 @@
+{
+  "name": "02-baltic-mpn-only",
+  "senderAddress": "sales@balticcomponents.example",
+  "email": "Subject: Offer OFF-2610-0392\n\nTere Anna,\n\nas requested, our offer for the items below. We quote with manufacturer part numbers.\n\nMZ-V9P2T0BW          Samsung 990 PRO 2TB          15 pcs   EUR 168.40\nCT1000P3PSSD8        Crucial P3 Plus 1TB          30 pcs   EUR 53.10\nCMK32GX5M2B6000C36   Corsair Vengeance 32GB kit   12 pcs   EUR 98.70\n27UP850N-W           LG 27UP850N-W monitor        8 pcs    EUR 349.00\n\nOur offer number is OFF-2610-0392. The offer is valid 14 days.\nPayment terms: 21 days net.\nDelivery: 2 working days from order.\n\nKind regards,\nKristjan Tamm\nSales Manager\nBaltic Components OU\nParnu mnt 139c, 11317 Tallinn, Estonia",
+  "expected": {
+    "supplierCode": "BALTIC",
+    "supplierReference": "OFF-2610-0392",
+    "currency": "EUR",
+    "validUntil": null,
+    "paymentTermsDays": 21,
+    "deliveryDays": 2,
+    "lines": [
+      {
+        "sku": "SSD-SAM-990P-2T",
+        "quantity": 15,
+        "unitPrice": 168.40,
+        "unit": "pcs"
+      },
+      {
+        "sku": "SSD-CRU-P3P-1T",
+        "quantity": 30,
+        "unitPrice": 53.10,
+        "unit": "pcs"
+      },
+      {
+        "sku": "RAM-COR-VLP-32K-6000",
+        "quantity": 12,
+        "unitPrice": 98.70,
+        "unit": "pcs"
+      },
+      {
+        "sku": "MON-LG-27UP850",
+        "quantity": 8,
+        "unitPrice": 349.00,
+        "unit": "pcs"
+      }
+    ],
+    "unpricedLines": 0,
+    "mustNotAppear": [
+      "2526",
+      "1593",
+      "1184.40",
+      "2792"
+    ]
+  },
+  "notes": "Lines carry only manufacturer part numbers; \"valid 14 days\" without a date means validUntil null."
+}
